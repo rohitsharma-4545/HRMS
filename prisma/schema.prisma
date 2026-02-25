@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  CASUAL
+}
+
+model User {
+  id                    String   @id @default(uuid())
+  email                 String?  @unique
+  phone                 String?  @unique
+  password              String?  // optional for OTP users
+  isActive              Boolean  @default(true)
+  isDeleted             Boolean  @default(false)
+  forcePasswordChange   Boolean  @default(true)
+
+  employee    Employee?
+  otps        Otp[]
+  userRoles   UserRole[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+  @@index([phone])
+}
+
+model Role {
+  id          String @id @default(uuid())
+  name        String @unique
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String @id @default(uuid())
+  name        String @unique
+  roles       RolePermission[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Otp {
+  id         String   @id @default(uuid())
+  userId     String
+  code       String
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+}
+
+model Employee {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  employeeCode  String   @unique
+  firstName     String
+  lastName      String
+  departmentId  String?
+  designation   String?
+  joiningDate   DateTime?
+  salary        Float?
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department    Department? @relation(fields: [departmentId], references: [id])
+  documents     Document[]
+  attendances   Attendance[]
+  leaves        Leave[]
+  leaveBalances LeaveBalance[]
+  payrolls      Payroll[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([employeeCode])
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  employees Employee[]
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+
+  date        DateTime
+  punchIn     DateTime?
+  punchOut    DateTime?
+
+  totalHours  Float?
+  status      String   @default("PRESENT")
+
+  createdAt   DateTime @default(now())
+
+  @@unique([employeeId, date])
+}
+
+model Leave {
+  id           String   @id @default(uuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id])
+
+  type         LeaveType  @default(ANNUAL)
+  startDate    DateTime
+  endDate      DateTime
+  reason       String
+
+  days         Float       @default(1) 
+  status       LeaveStatus @default(PENDING)
+
+  appliedAt    DateTime @default(now())
+  reviewedBy   String?
+  reviewedAt   DateTime?
+
+  @@index([employeeId])
+}
+
+model LeaveBalance {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+
+  type        LeaveType
+  total       Float     // total allocated
+  used        Float     @default(0)
+
+  year        Int
+
+  lastAccruedMonth Int?
+
+  @@unique([employeeId, type, year])
+}
+
+model Payroll {
+  id          String   @id @default(uuid())
+  employeeId  String
+  month       Int
+  year        Int
+  baseSalary  Float
+  deductions  Float
+  netSalary   Float
+
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([employeeId, month, year])
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  employeeId  String
+  fileName    String
+  fileUrl     String
+  fileType    String
+
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  entity     String
+  entityId   String
+
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Holiday {
+  id        String   @id @default(uuid())
+  name      String
+  date      DateTime
+  type      String   // GOVERNMENT | COMPANY
+  createdAt DateTime @default(now())
+}
+
+
+
+
