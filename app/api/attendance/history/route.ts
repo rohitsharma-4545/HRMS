@@ -4,7 +4,7 @@ import { getAttendanceHistory } from "@/app/modules/attendance/attendance.servic
 
 export async function GET(req: Request) {
   try {
-    const user = await getCurrentUser(req);
+    const user = await getCurrentUser();
 
     if (!user.employeeId) {
       throw new Error("Only employees allowed");

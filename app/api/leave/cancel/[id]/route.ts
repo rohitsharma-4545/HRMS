@@ -7,7 +7,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await getCurrentUser(req);
+    const user = await getCurrentUser();
     const { id } = await context.params;
 
     if (!user.employeeId) {

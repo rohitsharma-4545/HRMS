@@ -10,7 +10,7 @@ export async function POST(
   try {
     await hasPermission(req, "LEAVE_APPROVE");
 
-    const user = await getCurrentUser(req);
+    const user = await getCurrentUser();
     const { id } = await context.params;
 
     const result = await rejectLeave(id, user.userId);

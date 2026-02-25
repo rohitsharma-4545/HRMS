@@ -155,7 +155,7 @@ async function main() {
     }
   }
   const superAdminEmail = "admin@company.com";
-  const superAdminPassword = await bcrypt.hash("Admin@123", 10);
+  const superAdminPassword = await bcrypt.hash("Admin@123", 10); //Jes@123
 
   const superAdmin = await prisma.user.upsert({
     where: { email: superAdminEmail },

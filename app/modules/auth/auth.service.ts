@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { signToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 export async function createUserByHR(data: {
   email?: string;
@@ -185,18 +186,14 @@ export async function verifyOtp(identifier: string, code: string) {
   return { token };
 }
 
-export async function getCurrentUser(req: Request) {
-  const authHeader = req.headers.get("authorization");
+export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("Unauthorized");
-  }
-
-  const token = authHeader.split(" ")[1];
+  if (!token) throw new Error("Unauthorized");
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-
     return decoded;
   } catch {
     throw new Error("Invalid token");

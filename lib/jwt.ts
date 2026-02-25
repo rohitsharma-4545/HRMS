@@ -2,10 +2,19 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
-export function signToken(payload: any) {
+export interface JwtPayload {
+  userId: string;
+  roles: string[];
+  employeeId?: string | null;
+  passwordChangeRequired?: boolean;
+  iat?: number;
+  exp?: number;
+}
+
+export function signToken(payload: JwtPayload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 
-export function verifyToken(token: string) {
-  return jwt.verify(token, JWT_SECRET);
+export function verifyToken(token: string): JwtPayload {
+  return jwt.verify(token, JWT_SECRET) as JwtPayload;
 }

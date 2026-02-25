@@ -34,6 +34,9 @@ model User {
   isDeleted             Boolean  @default(false)
   forcePasswordChange   Boolean  @default(true)
 
+  resetToken            String?
+  resetTokenExpiry      DateTime?
+
   employee    Employee?
   otps        Otp[]
   userRoles   UserRole[]

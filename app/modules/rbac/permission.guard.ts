@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
+import { cookies } from "next/headers";
 
 export async function hasPermission(req: Request, requiredPermission: string) {
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.split(" ")[1];
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
   if (!token) throw new Error("Unauthorized");
 

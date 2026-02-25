@@ -8,17 +8,21 @@ export async function POST(req: Request) {
 
     const result = await loginWithPassword(identifier, password);
 
-    if (result.forcePasswordChange) {
-      return NextResponse.json({
-        forcePasswordChange: true,
-        token: result.token,
-      });
-    }
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       token: result.token,
+      forcePasswordChange: result.forcePasswordChange || false,
     });
+
+    response.cookies.set("token", result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 401 });
   }

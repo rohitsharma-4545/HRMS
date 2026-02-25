@@ -4,7 +4,7 @@ import { punchOut } from "@/app/modules/attendance/attendance.service";
 
 export async function POST(req: Request) {
   try {
-    const user = await getCurrentUser(req);
+    const user = await getCurrentUser();
 
     if (!user.employeeId) {
       throw new Error("Only employees can punch out");

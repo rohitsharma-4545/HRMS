@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
+import { signToken } from "@/lib/jwt";
 
 export async function POST(req: Request) {
   try {
-    const token = req.headers.get("authorization")?.split(" ")[1];
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
     if (!token) throw new Error("Unauthorized");
 
     const decoded: any = verifyToken(token);
@@ -27,7 +31,23 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ success: true });
+    const newToken = signToken({
+      userId: decoded.userId,
+      roles: decoded.roles,
+      employeeId: decoded.employeeId,
+    });
+
+    const response = NextResponse.json({ success: true });
+
+    response.cookies.set("token", newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 401 });
   }
