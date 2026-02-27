@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { hasPermission } from "@/app/modules/rbac/permission.guard";
-import { getEmployeeById } from "@/app/modules/employee/employee.service";
-import { updateEmployee } from "@/app/modules/employee/employee.service";
-import { softDeleteEmployee } from "@/app/modules/employee/employee.service";
+import { hasPermission } from "@/modules/rbac/permission.guard";
+import { getEmployeeById } from "@/modules/employee/employee.service";
+import { updateEmployee } from "@/modules/employee/employee.service";
+import { softDeleteEmployee } from "@/modules/employee/employee.service";
 
 export async function GET(
   req: Request,

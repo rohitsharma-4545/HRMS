@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { hasPermission } from "@/app/modules/rbac/permission.guard";
-import { approveLeave } from "@/app/modules/leave/leave.service";
-import { getCurrentUser } from "@/app/modules/auth/auth.service";
+import { hasPermission } from "@/modules/rbac/permission.guard";
+import { approveLeave } from "@/modules/leave/leave.service";
+import { getCurrentUser } from "@/modules/auth/auth.service";
 
 export async function POST(
   req: Request,

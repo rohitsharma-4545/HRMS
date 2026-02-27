@@ -3,6 +3,9 @@ import { signToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/jwt";
+import { JwtPayload } from "jsonwebtoken";
+import { AppUser } from "@/types/user";
 
 export async function createUserByHR(data: {
   email?: string;
@@ -186,15 +189,21 @@ export async function verifyOtp(identifier: string, code: string) {
   return { token };
 }
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<AppUser> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   if (!token) throw new Error("Unauthorized");
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return decoded;
+    const decoded = verifyToken(token) as JwtPayload;
+
+    return {
+      userId: decoded.userId,
+      roles: decoded.roles,
+      employeeId: decoded.employeeId ?? null,
+      passwordChangeRequired: decoded.passwordChangeRequired ?? false,
+    };
   } catch {
     throw new Error("Invalid token");
   }

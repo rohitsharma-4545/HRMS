@@ -87,10 +87,14 @@ export default function ForgotPasswordPage() {
 
         <button
           type="submit"
-          disabled={loading || success}
+          disabled={loading}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-60"
         >
-          {loading ? "Submitting..." : "Submit"}
+          {loading
+            ? "Sending..."
+            : success
+              ? "Resend Email"
+              : "Send Reset Link"}
         </button>
       </form>
     </div>

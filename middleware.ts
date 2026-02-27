@@ -15,7 +15,7 @@ export function middleware(req: any) {
   }
 
   if (isPublicAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/desk", req.url));
   }
 
   return NextResponse.next();

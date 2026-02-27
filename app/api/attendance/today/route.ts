@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/modules/auth/auth.service";
-import { getTodayAttendance } from "@/app/modules/attendance/attendance.service";
+import { getCurrentUser } from "@/modules/auth/auth.service";
+import { getTodayAttendance } from "@/modules/attendance/attendance.service";
 
 export async function GET(req: Request) {
   try {

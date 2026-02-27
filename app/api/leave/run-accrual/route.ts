@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasPermission } from "@/app/modules/rbac/permission.guard";
-import { runMonthlyAccrual } from "@/app/modules/leave/accrual.service";
+import { hasPermission } from "@/modules/rbac/permission.guard";
+import { runMonthlyAccrual } from "@/modules/leave/accrual.service";
 
 export async function POST(req: Request) {
   try {

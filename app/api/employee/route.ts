@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasPermission } from "@/app/modules/rbac/permission.guard";
-import { getAllEmployees } from "@/app/modules/employee/employee.service";
+import { hasPermission } from "@/modules/rbac/permission.guard";
+import { getAllEmployees } from "@/modules/employee/employee.service";
 
 export async function GET(req: Request) {
   try {

@@ -1,4 +1,4 @@
-import { getHolidaysBetween } from "@/app/modules/holiday/holiday.service";
+import { getHolidaysBetween } from "@/modules/holiday/holiday.service";
 
 export async function calculateWorkingDays(startDate: Date, endDate: Date) {
   let count = 0;

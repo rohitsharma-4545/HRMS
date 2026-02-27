@@ -41,7 +41,7 @@ export default function LoginPage() {
       if (data.forcePasswordChange) {
         router.push("/change-password");
       } else {
-        router.push("/dashboard");
+        router.push("/desk");
       }
 
       router.refresh();

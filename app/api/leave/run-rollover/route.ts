@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasPermission } from "@/app/modules/rbac/permission.guard";
-import { runYearRollover } from "@/app/modules/leave/rollover.service";
+import { hasPermission } from "@/modules/rbac/permission.guard";
+import { runYearRollover } from "@/modules/leave/rollover.service";
 
 export async function POST(req: Request) {
   try {

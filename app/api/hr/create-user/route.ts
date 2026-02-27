@@ -1,6 +1,6 @@
-import { hasPermission } from "@/app/modules/rbac/permission.guard";
+import { hasPermission } from "@/modules/rbac/permission.guard";
 import { NextResponse } from "next/server";
-import { createUserByHR } from "@/app/modules/auth/auth.service";
+import { createUserByHR } from "@/modules/auth/auth.service";
 
 export async function POST(req: Request) {
   try {

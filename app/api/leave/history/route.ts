@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/app/modules/auth/auth.service";
-import { getLeaveHistory } from "@/app/modules/leave/leave.service";
+import { getCurrentUser } from "@/modules/auth/auth.service";
+import { getLeaveHistory } from "@/modules/leave/leave.service";
 
 export async function GET(req: Request) {
   try {
