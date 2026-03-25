@@ -46,3 +46,32 @@ export async function softDeleteEmployee(id: string) {
     });
   });
 }
+
+export async function searchEmployees(query: string) {
+  return prisma.employee.findMany({
+    where: {
+      OR: [
+        { firstName: { contains: query, mode: "insensitive" } },
+        { lastName: { contains: query, mode: "insensitive" } },
+        { employeeCode: { contains: query, mode: "insensitive" } },
+        {
+          user: {
+            OR: [
+              { email: { contains: query, mode: "insensitive" } },
+              { phone: { contains: query, mode: "insensitive" } },
+            ],
+          },
+        },
+      ],
+    },
+    include: {
+      department: {
+        select: { name: true },
+      },
+      user: {
+        select: { isActive: true },
+      },
+    },
+    take: 15, // very important
+  });
+}

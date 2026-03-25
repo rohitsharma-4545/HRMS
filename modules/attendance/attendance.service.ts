@@ -34,10 +34,7 @@ export async function punchOut(employeeId: string) {
   today.setHours(0, 0, 0, 0);
 
   const attendance = await prisma.attendance.findFirst({
-    where: {
-      employeeId,
-      date: today,
-    },
+    where: { employeeId, date: today },
   });
 
   if (!attendance || !attendance.punchIn) {
@@ -48,16 +45,19 @@ export async function punchOut(employeeId: string) {
     throw new Error("Already punched out");
   }
 
-  const punchOutTime = new Date();
+  const now = new Date();
+  const hoursWorked =
+    (now.getTime() - attendance.punchIn.getTime()) / (1000 * 60 * 60);
 
-  const totalHours =
-    (punchOutTime.getTime() - attendance.punchIn.getTime()) / (1000 * 60 * 60);
+  if (hoursWorked < 1) {
+    throw new Error("You can punch out only after 1 hour");
+  }
 
   return prisma.attendance.update({
     where: { id: attendance.id },
     data: {
-      punchOut: punchOutTime,
-      totalHours,
+      punchOut: now,
+      totalHours: hoursWorked,
     },
   });
 }
@@ -78,5 +78,46 @@ export async function getAttendanceHistory(employeeId: string) {
   return prisma.attendance.findMany({
     where: { employeeId },
     orderBy: { date: "desc" },
+  });
+}
+
+export async function startBreak(employeeId: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const attendance = await prisma.attendance.findFirst({
+    where: { employeeId, date: today },
+  });
+
+  if (!attendance || attendance.punchOut) {
+    throw new Error("Cannot start break");
+  }
+
+  return prisma.break.create({
+    data: {
+      attendanceId: attendance.id,
+      start: new Date(),
+    },
+  });
+}
+
+export async function endBreak(employeeId: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const attendance = await prisma.attendance.findFirst({
+    where: { employeeId, date: today },
+    include: { breaks: true },
+  });
+
+  const activeBreak = attendance?.breaks.find((b) => !b.end);
+
+  if (!activeBreak) {
+    throw new Error("No active break");
+  }
+
+  return prisma.break.update({
+    where: { id: activeBreak.id },
+    data: { end: new Date() },
   });
 }

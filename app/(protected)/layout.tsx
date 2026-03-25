@@ -12,10 +12,6 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  if (user.passwordChangeRequired) {
-    redirect("/change-password");
-  }
-
   return (
     <div className="flex h-screen bg-slate-100">
       <Sidebar />

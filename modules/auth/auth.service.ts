@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import { signToken } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { JwtPayload } from "jsonwebtoken";
@@ -193,7 +192,7 @@ export async function getCurrentUser(): Promise<AppUser> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  if (!token) throw new Error("Unauthorized");
+  if (!token) throw new Error("Authentication required");
 
   try {
     const decoded = verifyToken(token) as JwtPayload;

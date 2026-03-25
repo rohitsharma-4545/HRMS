@@ -25,6 +25,11 @@ enum LeaveType {
   CASUAL
 }
 
+enum AccountType {
+  SAVINGS
+  CURRENT
+}
+
 model User {
   id                    String   @id @default(uuid())
   email                 String?  @unique
@@ -104,18 +109,28 @@ model Employee {
   joiningDate   DateTime?
   salary        Float?
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department    Department? @relation(fields: [departmentId], references: [id])
-  documents     Document[]
-  attendances   Attendance[]
-  leaves        Leave[]
-  leaveBalances LeaveBalance[]
-  payrolls      Payroll[]
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department      Department? @relation(fields: [departmentId], references: [id])
+  documents       Document[]
+  attendances     Attendance[]
+  leaves          Leave[]
+  leaveBalances   LeaveBalance[]
+  payrolls        Payroll[]
+  bankDetails     BankDetail[]
+  personalProfile PersonalProfile?
+  addresses       Address[]
+  contacts        Contact[]
+  dependents      Dependent[]
+  workProfile     WorkProfile?
+  reportingOffice ReportingOffice[]
+  experiences     Experience[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@index([employeeCode])
+  @@index([firstName])
+  @@index([lastName])
 }
 
 model Department {
@@ -135,10 +150,20 @@ model Attendance {
 
   totalHours  Float?
   status      String   @default("PRESENT")
+  breaks      Break[]
 
   createdAt   DateTime @default(now())
 
   @@unique([employeeId, date])
+}
+
+model Break {
+  id            String   @id @default(uuid())
+  attendanceId  String
+  start         DateTime
+  end           DateTime?
+
+  attendance    Attendance @relation(fields: [attendanceId], references: [id])
 }
 
 model Leave {
@@ -224,6 +249,158 @@ model Holiday {
   type      String   // GOVERNMENT | COMPANY
   createdAt DateTime @default(now())
 }
+
+model BankDetail {
+  id                String      @id @default(uuid())
+  employeeId        String
+  employee          Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  bankName          String
+  branchName        String?
+  accountHolderName String
+  accountNumber     String
+  accountType       AccountType
+  ifscCode          String
+
+  isDefault         Boolean     @default(false)
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([employeeId])
+}
+
+model PersonalProfile {
+  id              String  @id @default(uuid())
+  employeeId      String  @unique
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  salutation      String?
+  firstName       String
+  middleName      String?
+  lastName        String
+  preferredName   String?
+  about           String?
+
+  gender          String?
+  bloodGroup      String?
+  genderPronoun   String?
+  challenged      Boolean?
+  maritalStatus   String?
+  partnerName     String?
+
+  birthDate       DateTime?
+  partnerBirthDate DateTime?
+  anniversaryDate DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Address {
+  id          String @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  type        String  // PRESENT | PERMANENT | OTHER
+  address1    String
+  address2    String?
+  country     String
+  state       String
+  city        String
+  postalCode  String
+
+  createdAt   DateTime @default(now())
+
+  @@unique([employeeId, type])
+}
+
+model Contact {
+  id          String @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  type        String  // PHONE | EMAIL | EMERGENCY
+  tag         String  // PERSONAL | WORK | FAMILY
+  value       String
+
+  createdAt   DateTime @default(now())
+
+  @@unique([employeeId, type, tag])
+}
+
+model Dependent {
+  id          String @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  relation    String
+  firstName   String
+  lastName    String?
+  phone       String?
+  birthDate   DateTime?
+
+  createdAt   DateTime @default(now())
+
+  @@index([employeeId])
+}
+
+model WorkProfile {
+  id                 String @id @default(uuid())
+  employeeId         String @unique
+  employee           Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  employmentStage    String?
+  employmentType     String?
+  employmentGrade    String?
+  selfService        Boolean @default(true)
+
+  probationEndDate   DateTime?
+  confirmationDate   DateTime?
+
+  noticeStartDate    DateTime?
+  exitDate           DateTime?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model ReportingOffice {
+  id          String @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  officeName  String
+  address     String
+  city        String
+  state       String
+  postalCode  String
+  country     String
+
+  isCurrent   Boolean @default(true)
+
+  createdAt   DateTime @default(now())
+
+  @@index([employeeId])
+}
+
+model Experience {
+  id          String @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  company     String
+  designation String
+  startDate   DateTime
+  endDate     DateTime?
+  isCurrent   Boolean @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@index([employeeId])
+}
+
+
 
 
 
