@@ -2,17 +2,9 @@
 
 import { useMemo, useRef, useState } from "react";
 import PresenceCard from "./PresenceCard";
-import {
-  Search,
-  SlidersHorizontal,
-  Mail,
-  Phone,
-  Briefcase,
-  Building2,
-  ExternalLink,
-} from "lucide-react";
-import Link from "next/link";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import EmployeeAvatarPopover from "@/components/desk/EmployeeAvatarPopover";
 
 type Status = "in" | "out" | "not-clocked-in" | "leave";
 
@@ -207,63 +199,17 @@ export default function DepartmentPresence({ data, leaves }: Props) {
               )}
 
               {activeEmployeeId === emp.id && (
-                <div
-                  ref={popoverRef}
-                  className="absolute top-12 left-0 ml-6 z-50 w-60 bg-white shadow-2xl rounded-2xl border overflow-hidden"
-                >
-                  <div className="flex flex-col">
-                    <div className="relative h-32 bg-slate-100">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div
-                          className={`w-20 h-20 rounded-full text-white flex items-center justify-center text-xl font-semibold shadow-lg ${colorClass}`}
-                        >
-                          {emp.initials}
-                        </div>
-                      </div>
-
-                      <p className="absolute bottom-1 left-4 text-sm font-semibold text-slate-700 drop-shadow truncate max-w-[65%]">
-                        {emp.name}
-                      </p>
-
-                      <Link
-                        href={`/profile/${emp.empCode}`}
-                        className="absolute bottom-3 right-4 text-slate-700 hover:scale-110 transition"
-                      >
-                        <ExternalLink size={18} />
-                      </Link>
-                    </div>
-
-                    <div className="p-4 space-y-3 text-xs text-slate-700 border-t">
-                      {emp.designation && (
-                        <div className="flex items-center gap-2">
-                          <Briefcase size={14} />
-                          {emp.designation}
-                        </div>
-                      )}
-
-                      {emp.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone size={14} />
-                          {emp.phone}
-                        </div>
-                      )}
-
-                      {emp.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail size={14} />
-                          {emp.email}
-                        </div>
-                      )}
-
-                      {emp.department && (
-                        <div className="flex items-center gap-2">
-                          <Building2 size={14} />
-                          {emp.department}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <EmployeeAvatarPopover
+                  popoverRef={popoverRef}
+                  name={emp.name}
+                  initials={emp.initials}
+                  empCode={emp.empCode}
+                  colorClass={colorClass}
+                  designation={emp.designation}
+                  email={emp.email}
+                  phone={emp.phone}
+                  department={emp.department}
+                />
               )}
             </div>
           );

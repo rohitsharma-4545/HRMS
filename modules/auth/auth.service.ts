@@ -197,11 +197,27 @@ export async function getCurrentUser(): Promise<AppUser> {
   try {
     const decoded = verifyToken(token) as JwtPayload;
 
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!user) throw new Error("User not found");
+
     return {
       userId: decoded.userId,
       roles: decoded.roles,
       employeeId: decoded.employeeId ?? null,
       passwordChangeRequired: decoded.passwordChangeRequired ?? false,
+      firstName: user.employee?.firstName,
+      lastName: user.employee?.lastName,
     };
   } catch {
     throw new Error("Invalid token");

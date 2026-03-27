@@ -1,40 +1,77 @@
 "use client";
 
-import SectionContainer from "./SectionContainer";
+import { useState } from "react";
+import { Pencil, Plus } from "lucide-react";
 
-export default function DependentsSection({ data, isSelf }: any) {
-  const hasData = data?.length > 0;
+import SectionContainer from "./SectionContainer";
+import DependentsForm from "./forms/DependentsForm";
+
+interface Props {
+  data: any[];
+  isSelf?: boolean;
+}
+
+export default function DependentsSection({ data = [], isSelf = true }: Props) {
+  const [editing, setEditing] = useState(false);
+
+  const hasData = data.length > 0;
+
+  function startEdit() {
+    setEditing(true);
+  }
+
+  function cancelEdit() {
+    setEditing(false);
+  }
+
+  const action =
+    isSelf && !editing ? (
+      <button
+        onClick={startEdit}
+        className="flex items-center gap-2 text-blue-600 text-sm"
+      >
+        {hasData ? <Pencil size={16} /> : <Plus size={16} />}
+        {hasData ? "Edit" : "Add"}
+      </button>
+    ) : null;
 
   return (
-    <SectionContainer
-      title="Dependents"
-      hasData={hasData}
-      isSelf={isSelf}
-      form={<DependentsForm />}
-    >
-      {!hasData ? (
-        <p className="text-gray-500">No dependents added</p>
+    <SectionContainer title="Dependents" action={action}>
+      {editing ? (
+        <DependentsForm
+          defaultValues={data}
+          onCancel={cancelEdit}
+          onSubmit={() => setEditing(false)}
+        />
+      ) : hasData ? (
+        <DependentsView data={data} />
       ) : (
-        <div className="space-y-4">
-          {data.map((d: any) => (
-            <div key={d.id}>
-              <p className="font-medium">{d.name}</p>
-              <p className="text-sm text-gray-500">{d.relation}</p>
-            </div>
-          ))}
-        </div>
+        <p className="text-gray-500 text-sm">
+          No data available. Click "Add" to get started.
+        </p>
       )}
     </SectionContainer>
   );
 }
 
-function DependentsForm() {
+function DependentsView({ data }: { data: any[] }) {
   return (
-    <form className="space-y-4">
-      <input placeholder="Name" className="input" />
-      <input placeholder="Relation" className="input" />
-
-      <button className="btn-primary">Save</button>
-    </form>
+    <div className="space-y-4">
+      {data.map((d) => (
+        <div key={d.id} className="border rounded-lg p-3">
+          <p className="font-medium text-sm">
+            {d.firstName} {d.lastName || ""}
+          </p>
+          <p className="text-xs text-gray-500">{d.relation}</p>
+          <p className="text-xs text-gray-500">{d.phone || "-"}</p>
+          <p className="text-xs text-gray-500">{formatDate(d.birthDate)}</p>
+        </div>
+      ))}
+    </div>
   );
+}
+
+function formatDate(date?: string | Date) {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString();
 }

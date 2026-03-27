@@ -1,4 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import {
+  eachDayOfInterval,
+  startOfMonth,
+  endOfMonth,
+  isWeekend,
+  isSameDay,
+} from "date-fns";
 
 export async function punchIn(employeeId: string) {
   const today = new Date();
@@ -13,7 +20,6 @@ export async function punchIn(employeeId: string) {
       },
     });
   } catch (error: any) {
-    // If record already exists
     const existing = await prisma.attendance.findFirst({
       where: { employeeId, date: today },
     });
@@ -120,4 +126,70 @@ export async function endBreak(employeeId: string) {
     where: { id: activeBreak.id },
     data: { end: new Date() },
   });
+}
+
+export async function getAttendanceCalendarView(
+  employeeId: string,
+  month?: string,
+) {
+  const target = month ? new Date(month + "-01") : new Date();
+  const start = startOfMonth(target);
+  const end = endOfMonth(target);
+
+  const raw = await prisma.attendance.findMany({
+    where: {
+      employeeId,
+      date: { gte: start, lte: end },
+    },
+  });
+
+  const holidays = await prisma.holiday.findMany({
+    where: { date: { gte: start, lte: end } },
+  });
+
+  const allDays = eachDayOfInterval({ start, end });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return allDays
+    .map((day) => {
+      const record = raw.find((r) => r.date.getTime() === day.getTime());
+      const holiday = holidays.find((h) => isSameDay(h.date, day));
+
+      if (record)
+        return { ...record, status: "PRESENT", statusType: "present" };
+
+      if (holiday)
+        return {
+          date: day,
+          status: `HOLIDAY: ${holiday.name}`,
+          statusType: "holiday",
+          punchIn: null,
+          punchOut: null,
+          totalHours: null,
+        };
+
+      if (isWeekend(day))
+        return {
+          date: day,
+          status: "WEEKLY OFF",
+          statusType: "weekoff",
+          punchIn: null,
+          punchOut: null,
+          totalHours: null,
+        };
+
+      return {
+        date: day,
+        status: "ABSENT",
+        statusType: "absent",
+
+        punchIn: null,
+        punchOut: null,
+        totalHours: null,
+      };
+    })
+    .filter((d) => d.date <= today)
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
 }

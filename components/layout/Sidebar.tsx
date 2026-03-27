@@ -47,7 +47,6 @@ export default function Sidebar() {
 
       const isPunchOut = !!attendance?.punchIn && !attendance?.punchOut;
 
-      // Optimistic update
       const now = new Date().toISOString();
 
       if (!isPunchOut) {
@@ -80,7 +79,7 @@ export default function Sidebar() {
       setAttendance(data);
     } catch (err: any) {
       toast.error(err.message);
-      await fetchTodayAttendance(); // rollback
+      await fetchTodayAttendance();
     } finally {
       setLoading(false);
     }

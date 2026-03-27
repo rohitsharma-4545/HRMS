@@ -3,4 +3,6 @@ export interface AppUser {
   roles: string[];
   employeeId?: string | null;
   passwordChangeRequired?: boolean;
+  firstName?: string;
+  lastName?: string;
 }

@@ -33,6 +33,9 @@ export default function UserDropdown({ user, active, toggle, close }: Props) {
 
   const role = user.roles.length ? user.roles[0] : "User";
 
+  const fullName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ") || "User";
+
   return (
     <div ref={ref}>
       <UserCircle size={24} className="cursor-pointer" onClick={toggle} />
@@ -44,7 +47,7 @@ export default function UserDropdown({ user, active, toggle, close }: Props) {
               <UserCircle size={36} className="text-blue-500 mt-1" />
               <div className="flex flex-col">
                 <span className="font-semibold text-gray-800 text-sm md:text-base">
-                  NItesh Malhotra
+                  {fullName}
                 </span>
                 <span className="font-medium text-gray-500 text-xs md:text-sm">
                   {role}

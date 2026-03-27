@@ -21,11 +21,12 @@ export default async function DeskPage() {
             data={data.departmentEmployees}
             leaves={data.leavesToday}
           />
-          <NewJoinees />
+          <NewJoinees data={data.newJoinees} />
         </div>
 
         <div className="col-span-4">
           <RightPanel
+            celebrations={data.celebrations}
             holidays={data.holidays}
             empCode={employee.employeeCode}
           />
