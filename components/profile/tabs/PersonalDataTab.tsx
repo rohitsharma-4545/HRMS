@@ -19,7 +19,6 @@ const SECTIONS = [
 ];
 
 export default function PersonalDataTab({ data, isSelf }: any) {
-  console.log(data);
   const [active, setActive] = useState("About");
 
   const visibleSections = isSelf ? SECTIONS : ["About", "Address", "Contact"];

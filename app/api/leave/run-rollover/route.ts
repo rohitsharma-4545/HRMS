@@ -4,7 +4,7 @@ import { runYearRollover } from "@/modules/leave/rollover.service";
 
 export async function POST(req: Request) {
   try {
-    await hasPermission(req, "LEAVE_APPROVE");
+    await hasPermission("LEAVE_APPROVE");
 
     const result = await runYearRollover();
 

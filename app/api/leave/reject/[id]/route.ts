@@ -8,12 +8,16 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    await hasPermission(req, "LEAVE_APPROVE");
+    await hasPermission("LEAVE_APPROVE");
 
     const user = await getCurrentUser();
     const { id } = await context.params;
 
-    const result = await rejectLeave(id, user.userId);
+    if (!user.employeeId) {
+      throw new Error("Only employees can reject leave");
+    }
+
+    const result = await rejectLeave(id, user.employeeId);
 
     return NextResponse.json(result);
   } catch (err: any) {

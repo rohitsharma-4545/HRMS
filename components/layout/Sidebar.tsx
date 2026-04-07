@@ -8,8 +8,10 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { NAV_ITEMS } from "@/config/navigation";
 import { toast } from "sonner";
+import { hasPermission } from "@/modules/rbac/permission.helper";
+import { AppUser } from "@/types/user";
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user: AppUser }) {
   const pathname = usePathname();
 
   const [open, setOpen] = useState(true);
@@ -127,6 +129,11 @@ export default function Sidebar() {
     remainingSeconds !== null &&
     remainingSeconds > 0;
 
+  const filteredItems = NAV_ITEMS.filter((item) => {
+    if (!item.permission) return true;
+    return hasPermission(user, item.permission);
+  });
+
   return (
     <div
       className={clsx(
@@ -154,15 +161,55 @@ export default function Sidebar() {
       </div>
 
       <nav className="mt-4 space-y-1 flex-1">
-        {NAV_ITEMS.map((item) => {
+        {filteredItems.map((item) => {
           const Icon = item.icon;
+
+          if (item.children) {
+            const visibleChildren = item.children.filter(
+              (child: any) =>
+                !child.permission || hasPermission(user, child.permission),
+            );
+
+            if (visibleChildren.length === 0) return null;
+
+            return (
+              <div key={item.name}>
+                <div className="flex items-center gap-3 px-4 py-3 text-gray-500 text-xs uppercase">
+                  <Icon size={16} />
+                  {open && <span>{item.name}</span>}
+                </div>
+
+                {visibleChildren.map((child: any) => {
+                  const ChildIcon = child.icon;
+                  const isActive = pathname === child.href;
+
+                  return (
+                    <Link key={child.href} href={child.href}>
+                      <div
+                        className={clsx(
+                          "flex items-center gap-3 pl-10 pr-4 py-2 text-sm",
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50",
+                        )}
+                      >
+                        <ChildIcon size={16} />
+                        {open && <span>{child.name}</span>}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          }
+
           const isActive = pathname === item.href;
 
           return (
             <Link key={item.href} href={item.href}>
               <div
                 className={clsx(
-                  "flex items-center gap-3 px-4 py-3 transition-colors",
+                  "flex items-center gap-3 px-4 py-3",
                   isActive
                     ? "bg-blue-100 text-blue-600 font-medium"
                     : "text-gray-700 hover:bg-blue-50",

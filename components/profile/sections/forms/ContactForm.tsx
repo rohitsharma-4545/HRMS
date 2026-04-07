@@ -54,8 +54,6 @@ export default function ContactForm({
     }
   }
 
-  console.log(defaultValues);
-
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <Field label="Contact Type" required>

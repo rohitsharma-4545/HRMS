@@ -5,6 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 export interface JwtPayload {
   userId: string;
   roles: string[];
+  permissions: string[];
   employeeId?: string | null;
   passwordChangeRequired?: boolean;
   iat?: number;

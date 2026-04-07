@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-slate-100">
-      <Sidebar />
+      <Sidebar user={user} />
 
       <div className="flex-1 flex flex-col">
         <Header user={user} />

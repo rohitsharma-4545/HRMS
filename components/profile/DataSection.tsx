@@ -19,7 +19,6 @@ export default function DataSection({ data, isSelf }: Props) {
     ? ["PERSONAL DATA", "WORK PROFILE", "DOCUMENTS"]
     : ["PERSONAL DATA", "WORK PROFILE"];
 
-  console.log(data);
   return (
     <div className="bg-white rounded-xl shadow border">
       <div className="flex border-b">

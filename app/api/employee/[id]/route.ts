@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { hasPermission } from "@/modules/rbac/permission.guard";
-import { getEmployeeById } from "@/modules/employee/employee.service";
-import { updateEmployee } from "@/modules/employee/employee.service";
-import { softDeleteEmployee } from "@/modules/employee/employee.service";
+import {
+  getEmployeeById,
+  updateEmployee,
+  deleteEmployee,
+} from "@/modules/employee/employee.service";
 
 export async function GET(
   req: Request,
@@ -11,7 +13,7 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    await hasPermission(req, "EMPLOYEE_READ");
+    await hasPermission("EMPLOYEE_READ");
 
     const employee = await getEmployeeById(id);
 
@@ -28,7 +30,7 @@ export async function PUT(
   try {
     const { id } = await context.params;
 
-    await hasPermission(req, "EMPLOYEE_UPDATE");
+    await hasPermission("EMPLOYEE_UPDATE");
 
     const body = await req.json();
 
@@ -45,11 +47,11 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    await hasPermission(req, "EMPLOYEE_DELETE");
+    await hasPermission("EMPLOYEE_DELETE");
 
     const { id } = await context.params;
 
-    await softDeleteEmployee(id);
+    await deleteEmployee(id);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

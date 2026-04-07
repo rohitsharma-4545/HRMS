@@ -43,8 +43,6 @@ export async function applyLeave(
 
   const year = startDate.getFullYear();
 
-  console.log(employeeId, type, year);
-
   const balance = await prisma.leaveBalance.findUnique({
     where: {
       employeeId_type_year: {
@@ -84,7 +82,7 @@ export async function getLeaveHistory(employeeId: string) {
   });
 }
 
-export async function approveLeave(id: string, reviewerId: string) {
+export async function approveLeave(id: string, reviewerEmployeeId: string) {
   return prisma.$transaction(async (tx) => {
     const leave = await tx.leave.findUnique({ where: { id } });
 
@@ -131,14 +129,14 @@ export async function approveLeave(id: string, reviewerId: string) {
       where: { id },
       data: {
         status: "APPROVED",
-        reviewedBy: reviewerId,
+        reviewedById: reviewerEmployeeId,
         reviewedAt: new Date(),
       },
     });
   });
 }
 
-export async function rejectLeave(id: string, reviewerId: string) {
+export async function rejectLeave(id: string, reviewerEmployeeId: string) {
   const leave = await prisma.leave.findUnique({ where: { id } });
 
   if (!leave) throw new Error("Leave not found");
@@ -149,7 +147,7 @@ export async function rejectLeave(id: string, reviewerId: string) {
     where: { id },
     data: {
       status: "REJECTED",
-      reviewedBy: reviewerId,
+      reviewedById: reviewerEmployeeId,
       reviewedAt: new Date(),
     },
   });
@@ -168,6 +166,33 @@ export async function cancelLeave(id: string, employeeId: string) {
     where: { id },
     data: {
       status: "CANCELLED",
+    },
+  });
+}
+
+export async function getLeaveRequests() {
+  return prisma.leave.findMany({
+    where: {
+      status: "PENDING",
+    },
+    include: {
+      employee: {
+        include: {
+          department: true,
+        },
+      },
+    },
+    orderBy: { appliedAt: "desc" },
+  });
+}
+
+export async function getLeaveBalances(employeeId: string) {
+  const year = new Date().getFullYear();
+
+  return prisma.leaveBalance.findMany({
+    where: {
+      employeeId,
+      year,
     },
   });
 }

@@ -30,6 +30,13 @@ enum AccountType {
   CURRENT
 }
 
+enum NoticePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
   id                    String   @id @default(uuid())
   email                 String?  @unique
@@ -124,6 +131,9 @@ model Employee {
   workProfile     WorkProfile?
   reportingOffice ReportingOffice[]
   experiences     Experience[]
+  noticesCreated      Notice[]                @relation("EmployeeNotices") // ✅ add this
+  noticeAcknowledgements NoticeAcknowledgement[]
+  reviewedLeaves Leave[] @relation("LeaveReviewer")
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -136,13 +146,15 @@ model Employee {
 model Department {
   id        String   @id @default(uuid())
   name      String   @unique
+  
   employees Employee[]
+  noticeTargets NoticeTarget[]
 }
 
 model Attendance {
   id          String   @id @default(uuid())
   employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [id])
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   date        DateTime
   punchIn     DateTime?
@@ -163,13 +175,13 @@ model Break {
   start         DateTime
   end           DateTime?
 
-  attendance    Attendance @relation(fields: [attendanceId], references: [id])
+  attendance    Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
 }
 
 model Leave {
   id           String   @id @default(uuid())
   employeeId   String
-  employee     Employee @relation(fields: [employeeId], references: [id])
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   type         LeaveType  @default(ANNUAL)
   startDate    DateTime
@@ -180,8 +192,9 @@ model Leave {
   status       LeaveStatus @default(PENDING)
 
   appliedAt    DateTime @default(now())
-  reviewedBy   String?
+  reviewedById   String?
   reviewedAt   DateTime?
+  reviewedBy   Employee? @relation("LeaveReviewer", fields: [reviewedById], references: [id])
 
   @@index([employeeId])
 }
@@ -189,7 +202,7 @@ model Leave {
 model LeaveBalance {
   id          String   @id @default(uuid())
   employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [id])
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   type        LeaveType
   total       Float     // total allocated
@@ -400,8 +413,53 @@ model Experience {
   @@index([employeeId])
 }
 
+model Notice {
+  id          String   @id @default(uuid())
+  title       String
+  content     String  
 
+  createdById String
+  createdBy   Employee @relation("EmployeeNotices", fields: [createdById], references: [id])
 
+  priority    NoticePriority @default(MEDIUM)
+  isActive    Boolean        @default(true)
 
+  publishAt   DateTime?
+  expiresAt   DateTime?
 
+  acknowledgements NoticeAcknowledgement[]
+  targets         NoticeTarget[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdById])
+  @@index([isActive, publishAt])
+  @@index([expiresAt])
+}
+
+model NoticeAcknowledgement {
+  id         String   @id @default(uuid())
+  noticeId   String
+  employeeId String
+
+  notice     Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  acknowledgedAt DateTime @default(now())
+
+  @@unique([noticeId, employeeId])
+}
+
+model NoticeTarget {
+  id           String   @id @default(uuid())
+  noticeId     String
+  departmentId String?
+
+  notice       Notice      @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  @@index([noticeId])
+  @@index([departmentId])
+}
 

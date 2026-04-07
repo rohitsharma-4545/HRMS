@@ -10,8 +10,6 @@ export default async function DeskPage() {
 
   const data = await getDeskData(employee.departmentId!);
 
-  // console.log(data);
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="grid grid-cols-12 gap-6">

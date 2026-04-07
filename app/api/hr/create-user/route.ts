@@ -4,7 +4,7 @@ import { createUserByHR } from "@/modules/auth/auth.service";
 
 export async function POST(req: Request) {
   try {
-    await hasPermission(req, "USER_CREATE");
+    await hasPermission("USER_CREATE");
 
     const body = await req.json();
     const result = await createUserByHR(body);

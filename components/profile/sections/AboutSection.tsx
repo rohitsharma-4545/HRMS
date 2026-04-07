@@ -63,7 +63,6 @@ export default function AboutSection({ data, isSelf = false }: Props) {
 }
 
 function AboutView({ data }: { data: any }) {
-  console.log(data);
   return (
     <div className="space-y-4">
       <Field label="Salutation" value={data.salutation} />

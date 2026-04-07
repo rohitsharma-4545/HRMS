@@ -49,6 +49,9 @@ interface DepartmentEmployee {
 interface Leave {
   id: string;
   employeeId: string;
+  startDate: Date;
+  endDate: Date;
+  status: string;
 }
 
 interface Props {
@@ -90,6 +93,9 @@ export default function DepartmentPresence({ data, leaves }: Props) {
   const filterRef = useRef<HTMLDivElement | null>(null);
   useClickOutside(filterRef, () => setShowFilter(false), showFilter);
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const toggleStatus = (status: Status) => {
     setSelectedStatuses((prev) =>
       prev.includes(status)
@@ -101,7 +107,20 @@ export default function DepartmentPresence({ data, leaves }: Props) {
   const leaveEmployeeIds = new Set(leaves.map((l) => l.employeeId));
 
   function deriveStatus(emp: DepartmentEmployee): Status {
-    if (leaveEmployeeIds.has(emp.id)) return "leave";
+    const isOnLeave = leaves?.some((l) => {
+      if (l.employeeId !== emp.id) return false;
+      if (l.status !== "APPROVED") return false;
+
+      const start = new Date(l.startDate);
+      const end = new Date(l.endDate);
+
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      return start <= today && end >= today;
+    });
+
+    if (isOnLeave) return "leave";
 
     const attendance = emp.attendances[0];
 

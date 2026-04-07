@@ -14,6 +14,9 @@ export async function createUserByHR(data: {
   lastName: string;
   departmentId?: string;
   roleName: string;
+  designation: string;
+  joiningDate: Date;
+  salary: number;
 }) {
   const {
     email,
@@ -23,6 +26,9 @@ export async function createUserByHR(data: {
     lastName,
     departmentId,
     roleName,
+    designation,
+    joiningDate,
+    salary,
   } = data;
 
   const role = await prisma.role.findUnique({
@@ -31,7 +37,7 @@ export async function createUserByHR(data: {
 
   if (!role) throw new Error("Invalid role");
 
-  const tempPassword = Math.random().toString(36).slice(-8);
+  const tempPassword = `${firstName.toLowerCase()}123`;
   const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
   const result = await prisma.$transaction(async (tx) => {
@@ -44,13 +50,24 @@ export async function createUserByHR(data: {
       },
     });
 
-    await tx.employee.create({
+    const employee = await tx.employee.create({
       data: {
         userId: user.id,
         employeeCode,
         firstName,
         lastName,
-        departmentId,
+        departmentId: departmentId || null,
+        designation: designation || null,
+        joiningDate: joiningDate ? new Date(joiningDate) : null,
+        salary: salary ? Number(salary) : null,
+      },
+    });
+
+    await tx.personalProfile.create({
+      data: {
+        employeeId: employee.id,
+        firstName,
+        lastName,
       },
     });
 
@@ -87,7 +104,15 @@ export async function loginWithPassword(identifier: string, password: string) {
       employee: true,
       userRoles: {
         include: {
-          role: true,
+          role: {
+            include: {
+              permissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -100,10 +125,21 @@ export async function loginWithPassword(identifier: string, password: string) {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error("Invalid credentials");
 
+  const roles = user.userRoles.map((r) => r.role.name);
+
+  const permissions = [
+    ...new Set(
+      user.userRoles.flatMap((ur) =>
+        ur.role.permissions.map((rp) => rp.permission.name),
+      ),
+    ),
+  ];
+
   if (user.forcePasswordChange) {
     const token = signToken({
       userId: user.id,
-      roles: user.userRoles.map((r) => r.role.name),
+      roles,
+      permissions,
       employeeId: user.employee?.id || null,
       passwordChangeRequired: true,
     });
@@ -114,11 +150,10 @@ export async function loginWithPassword(identifier: string, password: string) {
     };
   }
 
-  const roles = user.userRoles.map((r) => r.role.name);
-
   const token = signToken({
     userId: user.id,
     roles,
+    permissions,
     employeeId: user.employee?.id || null,
   });
 
@@ -156,7 +191,19 @@ export async function verifyOtp(identifier: string, code: string) {
       OR: [{ email: identifier }, { phone: identifier }],
     },
     include: {
-      userRoles: { include: { role: true } },
+      userRoles: {
+        include: {
+          role: {
+            include: {
+              permissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -180,9 +227,18 @@ export async function verifyOtp(identifier: string, code: string) {
 
   const roles = user.userRoles.map((r) => r.role.name);
 
+  const permissions = [
+    ...new Set(
+      user.userRoles.flatMap((ur) =>
+        ur.role.permissions.map((rp) => rp.permission.name),
+      ),
+    ),
+  ];
+
   const token = signToken({
     userId: user.id,
     roles,
+    permissions,
   });
 
   return { token };
@@ -214,6 +270,7 @@ export async function getCurrentUser(): Promise<AppUser> {
     return {
       userId: decoded.userId,
       roles: decoded.roles,
+      permissions: decoded.permissions || [],
       employeeId: decoded.employeeId ?? null,
       passwordChangeRequired: decoded.passwordChangeRequired ?? false,
       firstName: user.employee?.firstName,

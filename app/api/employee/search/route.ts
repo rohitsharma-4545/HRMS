@@ -4,7 +4,7 @@ import { searchEmployees } from "@/modules/employee/employee.service";
 
 export async function GET(req: Request) {
   try {
-    await hasPermission(req, "EMPLOYEE_READ");
+    await hasPermission("EMPLOYEE_READ");
 
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");
