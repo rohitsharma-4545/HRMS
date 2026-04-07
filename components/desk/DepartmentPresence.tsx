@@ -11,12 +11,12 @@ type Status = "in" | "out" | "not-clocked-in" | "leave";
 interface Attendance {
   id: string;
   date: Date;
-  createdAt: Date;
-  employeeId: string;
-  punchIn: Date | null;
-  punchOut: Date | null;
   totalHours: number | null;
-  status: string;
+
+  sessions?: {
+    punchIn: Date;
+    punchOut: Date | null;
+  }[];
 }
 
 interface DepartmentEmployee {
@@ -126,9 +126,11 @@ export default function DepartmentPresence({ data, leaves }: Props) {
 
     if (!attendance) return "not-clocked-in";
 
-    if (attendance.punchIn && !attendance.punchOut) return "in";
+    const activeSession = attendance.sessions?.find((s) => !s.punchOut);
 
-    if (attendance.punchIn && attendance.punchOut) return "out";
+    if (activeSession) return "in";
+
+    if (attendance.sessions?.length) return "out";
 
     return "not-clocked-in";
   }
@@ -137,6 +139,10 @@ export default function DepartmentPresence({ data, leaves }: Props) {
     return data
       .map((emp) => {
         const status = deriveStatus(emp);
+
+        const sessions = emp.attendances[0]?.sessions ?? [];
+
+        const lastSession = sessions[sessions.length - 1];
 
         return {
           id: emp.id,
@@ -149,24 +155,18 @@ export default function DepartmentPresence({ data, leaves }: Props) {
           phone: emp.user?.phone ?? null,
           department: emp.department?.name ?? null,
           time:
-            status === "in" && emp.attendances[0]?.punchIn
-              ? new Date(emp.attendances[0].punchIn).toLocaleTimeString(
-                  "en-US",
-                  {
+            status === "in" && lastSession?.punchIn
+              ? new Date(lastSession.punchIn).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : status === "out" && lastSession?.punchOut
+                ? new Date(lastSession.punchOut).toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: true,
-                  },
-                )
-              : status === "out" && emp.attendances[0]?.punchOut
-                ? new Date(emp.attendances[0].punchOut).toLocaleTimeString(
-                    "en-US",
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    },
-                  )
+                  })
                 : undefined,
         };
       })

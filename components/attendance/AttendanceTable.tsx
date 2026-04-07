@@ -21,10 +21,10 @@ export default function AttendanceTable({ records }: { records: any[] }) {
                 {format(r.date, "dd MMM yyyy")} ({format(r.date, "EEE")})
               </td>
               <td className="p-3">
-                {r.punchIn ? format(r.punchIn, "hh:mm a") : "-"}
+                {r.firstPunchIn ? format(r.firstPunchIn, "hh:mm a") : "-"}
               </td>
               <td className="p-3">
-                {r.punchOut ? format(r.punchOut, "hh:mm a") : "-"}
+                {r.lastPunchOut ? format(r.lastPunchOut, "hh:mm a") : "-"}
               </td>
               <td className="p-3">{r.totalHours?.toFixed(2) ?? "-"}</td>
               <td

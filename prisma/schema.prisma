@@ -157,16 +157,33 @@ model Attendance {
   employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   date        DateTime
-  punchIn     DateTime?
-  punchOut    DateTime?
+  firstPunchIn DateTime?
+  lastPunchOut DateTime?
 
-  totalHours  Float?
+  totalHours  Float? @default(0)
   status      String   @default("PRESENT")
   breaks      Break[]
+
+  sessions    AttendanceSession[]
 
   createdAt   DateTime @default(now())
 
   @@unique([employeeId, date])
+  @@index([employeeId, date])
+}
+
+model AttendanceSession {
+  id           String   @id @default(uuid())
+  attendanceId String
+
+  punchIn      DateTime
+  punchOut     DateTime?
+
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+
+  @@index([attendanceId])
 }
 
 model Break {

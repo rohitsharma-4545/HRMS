@@ -17,7 +17,6 @@ export default function Sidebar({ user }: { user: AppUser }) {
   const [open, setOpen] = useState(true);
   const [attendance, setAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-open");
@@ -47,21 +46,7 @@ export default function Sidebar({ user }: { user: AppUser }) {
     try {
       setLoading(true);
 
-      const isPunchOut = !!attendance?.punchIn && !attendance?.punchOut;
-
-      const now = new Date().toISOString();
-
-      if (!isPunchOut) {
-        setAttendance((prev: any) => ({
-          ...prev,
-          punchIn: now,
-        }));
-      } else {
-        setAttendance((prev: any) => ({
-          ...prev,
-          punchOut: now,
-        }));
-      }
+      const isPunchOut = hasActiveSession;
 
       const endpoint = isPunchOut
         ? "/api/attendance/punch-out"
@@ -101,33 +86,9 @@ export default function Sidebar({ user }: { user: AppUser }) {
     return () => clearTimeout(timer);
   }, [fetchTodayAttendance]);
 
-  useEffect(() => {
-    if (!attendance?.punchIn || attendance?.punchOut) {
-      setRemainingSeconds(null);
-      return;
-    }
+  const activeSession = attendance?.sessions?.find((s: any) => !s.punchOut);
 
-    const interval = setInterval(() => {
-      const diff =
-        60 * 60 -
-        Math.floor(
-          (Date.now() - new Date(attendance.punchIn).getTime()) / 1000,
-        );
-
-      setRemainingSeconds(diff > 0 ? diff : 0);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [attendance]);
-
-  const hasPunchedIn = !!attendance?.punchIn;
-  const hasPunchedOut = !!attendance?.punchOut;
-
-  const disableClockOut =
-    hasPunchedIn &&
-    !hasPunchedOut &&
-    remainingSeconds !== null &&
-    remainingSeconds > 0;
+  const hasActiveSession = !!activeSession;
 
   const filteredItems = NAV_ITEMS.filter((item) => {
     if (!item.permission) return true;
@@ -226,28 +187,18 @@ export default function Sidebar({ user }: { user: AppUser }) {
       <div className="p-4 border-t">
         <button
           onClick={handlePunch}
-          disabled={
-            loading || hasPunchedOut || (hasPunchedIn && disableClockOut)
-          }
+          disabled={loading}
           className={clsx(
             "w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition",
-            hasPunchedIn
-              ? "bg-red-500 text-white hover:bg-red-600 disabled:bg-red-300"
+            hasActiveSession
+              ? "bg-red-500 text-white hover:bg-red-600"
               : "bg-green-500 text-white hover:bg-green-600",
             "disabled:cursor-not-allowed",
           )}
         >
           <Clock size={16} />
 
-          {hasPunchedOut
-            ? "Completed"
-            : hasPunchedIn
-              ? disableClockOut
-                ? `Clock Out (${Math.floor(
-                    remainingSeconds! / 60,
-                  )}:${String(remainingSeconds! % 60).padStart(2, "0")})`
-                : "Clock Out"
-              : "Clock In"}
+          {hasActiveSession ? "Clock Out" : "Clock In"}
         </button>
       </div>
     </div>

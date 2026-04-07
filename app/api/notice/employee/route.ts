@@ -5,7 +5,7 @@ import { getCurrentEmployee } from "@/modules/auth/auth-context.service";
 
 export async function GET() {
   try {
-    await hasPermission("EMPLOYEE_READ");
+    // await hasPermission("EMPLOYEE_READ");
 
     const { employee } = await getCurrentEmployee();
 

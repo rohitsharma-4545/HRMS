@@ -87,6 +87,9 @@ export async function getDeskData(departmentId: string) {
                 lte: endOfDay,
               },
             },
+            include: {
+              sessions: true,
+            },
           },
         },
       }),

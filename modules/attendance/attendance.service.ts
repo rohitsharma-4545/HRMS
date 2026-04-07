@@ -11,61 +11,81 @@ export async function punchIn(employeeId: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  try {
-    return await prisma.attendance.create({
+  const now = new Date();
+
+  let attendance = await prisma.attendance.findFirst({
+    where: { employeeId, date: today },
+    include: { sessions: true },
+  });
+
+  if (!attendance) {
+    attendance = await prisma.attendance.create({
       data: {
         employeeId,
         date: today,
-        punchIn: new Date(),
+        firstPunchIn: now,
       },
-    });
-  } catch (error: any) {
-    const existing = await prisma.attendance.findFirst({
-      where: { employeeId, date: today },
-    });
-
-    if (existing?.punchIn) {
-      throw new Error("Already punched in today");
-    }
-
-    return prisma.attendance.update({
-      where: { id: existing!.id },
-      data: { punchIn: new Date() },
+      include: { sessions: true },
     });
   }
+
+  const activeSession = attendance.sessions.find((s) => !s.punchOut);
+
+  if (activeSession) {
+    throw new Error("Already clocked in");
+  }
+
+  return prisma.attendanceSession.create({
+    data: {
+      attendanceId: attendance.id,
+      punchIn: now,
+    },
+  });
 }
 
 export async function punchOut(employeeId: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const now = new Date();
+
   const attendance = await prisma.attendance.findFirst({
     where: { employeeId, date: today },
+    include: { sessions: true },
   });
 
-  if (!attendance || !attendance.punchIn) {
-    throw new Error("Punch in first");
+  if (!attendance) throw new Error("Punch in first");
+
+  const activeSession = attendance.sessions.find((s) => !s.punchOut);
+
+  if (!activeSession) throw new Error("No active session");
+
+  const diffMinutes =
+    (now.getTime() - activeSession.punchIn.getTime()) / (1000 * 60);
+
+  if (diffMinutes < 10) {
+    throw new Error("Minimum 10 minutes required");
   }
 
-  if (attendance.punchOut) {
-    throw new Error("Already punched out");
-  }
+  const sessionHours =
+    (now.getTime() - activeSession.punchIn.getTime()) / (1000 * 60 * 60);
 
-  const now = new Date();
-  const hoursWorked =
-    (now.getTime() - attendance.punchIn.getTime()) / (1000 * 60 * 60);
+  const updatedSession = await prisma.attendanceSession.update({
+    where: { id: activeSession.id },
+    data: { punchOut: now },
+  });
 
-  if (hoursWorked < 1) {
-    throw new Error("You can punch out only after 1 hour");
-  }
+  const totalWorked = (attendance.totalHours || 0) + sessionHours;
 
-  return prisma.attendance.update({
+  await prisma.attendance.update({
     where: { id: attendance.id },
     data: {
-      punchOut: now,
-      totalHours: hoursWorked,
+      totalHours: totalWorked,
+      lastPunchOut: now,
     },
   });
+
+  return updatedSession;
 }
 
 export async function getTodayAttendance(employeeId: string) {
@@ -76,6 +96,9 @@ export async function getTodayAttendance(employeeId: string) {
     where: {
       employeeId,
       date: today,
+    },
+    include: {
+      sessions: true,
     },
   });
 }
@@ -95,7 +118,7 @@ export async function startBreak(employeeId: string) {
     where: { employeeId, date: today },
   });
 
-  if (!attendance || attendance.punchOut) {
+  if (!attendance || attendance.lastPunchOut) {
     throw new Error("Cannot start break");
   }
 
@@ -165,8 +188,8 @@ export async function getAttendanceCalendarView(
           date: day,
           status: `HOLIDAY: ${holiday.name}`,
           statusType: "holiday",
-          punchIn: null,
-          punchOut: null,
+          firstPunchIn: null,
+          lastPunchOut: null,
           totalHours: null,
         };
 
@@ -175,8 +198,8 @@ export async function getAttendanceCalendarView(
           date: day,
           status: "WEEKLY OFF",
           statusType: "weekoff",
-          punchIn: null,
-          punchOut: null,
+          firstPunchIn: null,
+          lastPunchOut: null,
           totalHours: null,
         };
 
@@ -185,8 +208,8 @@ export async function getAttendanceCalendarView(
         status: "ABSENT",
         statusType: "absent",
 
-        punchIn: null,
-        punchOut: null,
+        firstPunchIn: null,
+        lastPunchOut: null,
         totalHours: null,
       };
     })
