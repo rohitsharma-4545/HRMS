@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import LeaveViewer from "./LeaveViewer";
 import { useLeaveRequests } from "@/modules/leave/hooks/useLeaveRequests";
 import LeaveStatusBadge from "./LeaveStatusBadge";
 
 export default function LeaveRequestsTable() {
   const { data, loading, refetch } = useLeaveRequests();
+  const [selected, setSelected] = useState<any | null>(null);
 
   if (loading) return <p>Loading...</p>;
 
@@ -31,7 +34,11 @@ export default function LeaveRequestsTable() {
 
         <tbody className="divide-y">
           {data.map((l) => (
-            <tr key={l.id} className="hover:bg-gray-50">
+            <tr
+              key={l.id}
+              onClick={() => setSelected(l)}
+              className="hover:bg-gray-50"
+            >
               <td className="px-4 py-3 font-medium">
                 {l.employee.firstName} {l.employee.lastName}
               </td>
@@ -54,14 +61,20 @@ export default function LeaveRequestsTable() {
               <td className="px-4 py-3 text-right">
                 <div className="flex justify-end gap-2">
                   <button
-                    onClick={() => action(l.id, "approve")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      action(l.id, "approve");
+                    }}
                     className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded hover:bg-green-100"
                   >
                     Approve
                   </button>
 
                   <button
-                    onClick={() => action(l.id, "reject")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      action(l.id, "reject");
+                    }}
                     className="text-xs bg-red-50 text-red-700 px-3 py-1 rounded hover:bg-red-100"
                   >
                     Reject

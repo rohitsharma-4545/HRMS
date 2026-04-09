@@ -13,10 +13,7 @@ export async function GET() {
       throw new Error("Invalid employee context");
     }
 
-    const notices = await getEmployeeNotices(
-      employee.id,
-      employee.departmentId,
-    );
+    const notices = await getEmployeeNotices(employee.departmentId);
 
     return NextResponse.json(
       notices.map((n) => ({

@@ -64,7 +64,7 @@ export async function punchOut(employeeId: string) {
     (now.getTime() - activeSession.punchIn.getTime()) / (1000 * 60);
 
   if (diffMinutes < 10) {
-    throw new Error("Minimum 10 minutes required");
+    throw new Error("Minimum 10 minutes required befor1 clocking out");
   }
 
   const sessionHours =

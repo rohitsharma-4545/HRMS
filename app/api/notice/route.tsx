@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const user = await getCurrentUser(); // 👈 YOU MUST HAVE THIS
+    const user = await getCurrentUser();
 
     if (!user?.employeeId) {
       throw new Error("Invalid user");

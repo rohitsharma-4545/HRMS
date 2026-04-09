@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import LeaveViewer from "./LeaveViewer";
 import { useLeaveHistory } from "@/modules/leave/hooks/useLeaveHistory";
 import LeaveStatusBadge from "./LeaveStatusBadge";
 
 export default function LeaveHistoryTable() {
   const { data, loading } = useLeaveHistory();
+  const [selected, setSelected] = useState<any | null>(null);
 
   if (loading) return <p>Loading...</p>;
 
@@ -24,7 +27,11 @@ export default function LeaveHistoryTable() {
 
         <tbody className="divide-y">
           {data.map((l) => (
-            <tr key={l.id} className="hover:bg-gray-50">
+            <tr
+              key={l.id}
+              onClick={() => setSelected(l)}
+              className="hover:bg-gray-50 cursor-pointer"
+            >
               <td className="px-4 py-3 font-medium">{l.type}</td>
 
               <td className="px-4 py-3 text-gray-600">
@@ -45,7 +52,8 @@ export default function LeaveHistoryTable() {
               <td className="px-4 py-3 text-right">
                 {l.status === "PENDING" && (
                   <button
-                    onClick={async () => {
+                    onClick={async (e) => {
+                      e.stopPropagation();
                       await fetch(`/api/leave/cancel/${l.id}`, {
                         method: "POST",
                       });
@@ -61,6 +69,10 @@ export default function LeaveHistoryTable() {
           ))}
         </tbody>
       </table>
+
+      {selected && (
+        <LeaveViewer leave={selected} onClose={() => setSelected(null)} />
+      )}
     </div>
   );
 }

@@ -32,7 +32,6 @@ export default function NoticeBoard() {
 
     if (!res.ok) return;
 
-    // ✅ Refetch correct data from backend
     fetchNotices();
   };
 
@@ -40,7 +39,6 @@ export default function NoticeBoard() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-slate-800">Noticeboard</h2>
 
@@ -54,7 +52,6 @@ export default function NoticeBoard() {
         )}
       </div>
 
-      {/* Empty */}
       {notices.length === 0 ? (
         <div className="bg-slate-100 rounded-xl p-4 text-center text-slate-600">
           No new notices
@@ -72,7 +69,6 @@ export default function NoticeBoard() {
                 onClick={() => setSelected(n)}
                 className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 border rounded-lg px-4 py-3 cursor-pointer transition"
               >
-                {/* Left */}
                 <div className="flex items-center gap-2 overflow-hidden">
                   <span>📌</span>
 
@@ -81,7 +77,6 @@ export default function NoticeBoard() {
                   </p>
                 </div>
 
-                {/* Right */}
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500">
                     {n._count.acknowledgements}
@@ -91,7 +86,12 @@ export default function NoticeBoard() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleAcknowledge(n.id);
+
+                        if (!acknowledged) {
+                          handleAcknowledge(n.id);
+                        } else {
+                          setSelected(n);
+                        }
                       }}
                       className="text-xs bg-white border px-2 py-1 rounded hover:bg-gray-100"
                     >
@@ -105,7 +105,6 @@ export default function NoticeBoard() {
         </div>
       )}
 
-      {/* Modal */}
       {selected && (
         <NoticeViewer notice={selected} onClose={() => setSelected(null)} />
       )}

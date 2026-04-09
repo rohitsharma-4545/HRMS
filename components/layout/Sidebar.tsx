@@ -63,7 +63,7 @@ export default function Sidebar({ user }: { user: AppUser }) {
         isPunchOut ? "Successfully clocked out" : "Successfully clocked in",
       );
 
-      setAttendance(data);
+      await fetchTodayAttendance();
     } catch (err: any) {
       toast.error(err.message);
       await fetchTodayAttendance();

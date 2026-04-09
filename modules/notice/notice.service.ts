@@ -55,7 +55,6 @@ export async function createNotice(data: {
       priority: data.priority || NoticePriority.MEDIUM,
       expiresAt: data.expiresAt,
 
-      // ✅ FIX: use relation connect instead of raw FK
       createdBy: {
         connect: { id: data.createdById },
       },
@@ -69,7 +68,21 @@ export async function createNotice(data: {
         : undefined,
     },
     include: {
-      targets: true,
+      createdBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          employeeCode: true,
+        },
+      },
+      targets: {
+        include: {
+          department: {
+            select: { id: true, name: true },
+          },
+        },
+      },
     },
   });
 }
@@ -102,6 +115,23 @@ export async function updateNotice(
             }
           : undefined,
       },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            employeeCode: true,
+          },
+        },
+        targets: {
+          include: {
+            department: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+      },
     });
   });
 }
@@ -112,21 +142,17 @@ export async function deleteNotice(id: string) {
   });
 }
 
-export async function getEmployeeNotices(
-  employeeId: string,
-  departmentId: string,
-) {
+export async function getEmployeeNotices(departmentId: string) {
   return prisma.notice.findMany({
     where: {
       isActive: true,
-
       AND: [
         {
           OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
         },
         {
           OR: [
-            { targets: { none: {} } }, // global
+            { targets: { none: {} } },
             {
               targets: {
                 some: { departmentId },
@@ -149,6 +175,7 @@ export async function getEmployeeNotices(
         include: {
           employee: {
             select: {
+              id: true, // ✅ ADD THIS
               firstName: true,
               lastName: true,
             },
@@ -165,6 +192,22 @@ export async function getEmployeeNotices(
 
     orderBy: {
       createdAt: "desc",
+    },
+  });
+}
+
+export async function acknowledgeNotice(noticeId: string, employeeId: string) {
+  return prisma.noticeAcknowledgement.upsert({
+    where: {
+      noticeId_employeeId: {
+        noticeId,
+        employeeId,
+      },
+    },
+    update: {},
+    create: {
+      noticeId,
+      employeeId,
     },
   });
 }

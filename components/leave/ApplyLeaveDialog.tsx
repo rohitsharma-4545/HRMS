@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRef } from "react";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 export default function ApplyLeaveDialog() {
   const [open, setOpen] = useState(false);
@@ -10,6 +12,10 @@ export default function ApplyLeaveDialog() {
     endDate: "",
     reason: "",
   });
+
+  const ref = useRef<HTMLDivElement>(null);
+
+  useClickOutside(ref, () => setOpen(false), open);
 
   const handleSubmit = async () => {
     await fetch("/api/leave/apply", {
@@ -33,7 +39,10 @@ export default function ApplyLeaveDialog() {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white w-[420px] rounded-2xl shadow-lg p-6 space-y-4">
+      <div
+        ref={ref}
+        className="bg-white w-[420px] rounded-2xl shadow-lg p-6 space-y-4"
+      >
         <h2 className="text-lg font-semibold">Apply Leave</h2>
 
         <select
