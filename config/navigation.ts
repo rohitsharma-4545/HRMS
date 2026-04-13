@@ -49,6 +49,12 @@ export const NAV_ITEMS = [
         icon: CalendarCheck,
         permission: "EMPLOYEE_READ",
       },
+      {
+        name: "Data Cleanup",
+        href: "/admin/cleanup",
+        icon: Calendar,
+        permission: "ADMIN_ACCESS",
+      },
     ],
   },
 ];

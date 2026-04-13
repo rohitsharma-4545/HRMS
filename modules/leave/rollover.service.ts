@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { leavePolicy } from "@/config/leavePolicy";
+import { leavePolicy } from "@/config/constants";
 
 export async function runYearRollover() {
   const currentYear = new Date().getFullYear();

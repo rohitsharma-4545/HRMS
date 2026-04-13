@@ -18,3 +18,10 @@ export const leavePolicy = {
     allowCarryForward: false,
   },
 };
+
+export const DATA_RETENTION = {
+  NOTICES_DAYS: 90,
+  LEAVES_PENDING_DAYS: 30,
+  HOLIDAYS_YEARS: 1,
+  ATTENDANCE_MONTHS: 6,
+};
