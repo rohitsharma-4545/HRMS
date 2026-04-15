@@ -7,7 +7,7 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    await hasPermission(req, "EMPLOYEE_UPDATE");
+    await hasPermission("EMPLOYEE_UPDATE");
 
     await prisma.bankDetail.delete({
       where: { id: params.id },

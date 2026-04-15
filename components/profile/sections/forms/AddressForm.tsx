@@ -75,11 +75,11 @@ export default function AddressForm({
     try {
       setLoading(true);
 
-      await updateProfileSection("ADDRESS", form);
+      const res = await updateProfileSection("ADDRESS", form);
 
       toast.success("Address saved successfully");
 
-      onSubmit?.(form);
+      onSubmit?.(res);
     } catch (err) {
       toast.error("Failed to save address");
     } finally {

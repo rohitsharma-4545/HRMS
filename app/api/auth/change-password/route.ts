@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       userId: decoded.userId,
       roles: decoded.roles,
       employeeId: decoded.employeeId,
+      permissions: decoded.permissions,
     });
 
     const response = NextResponse.json({ success: true });

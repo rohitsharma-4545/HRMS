@@ -43,10 +43,11 @@ export default function ContactForm({
     try {
       setLoading(true);
 
-      await updateProfileSection("CONTACT", form);
+      const res = await updateProfileSection("CONTACT", form);
 
-      toast.success("Contact saved");
-      onSubmit?.(form);
+      toast.success("Contact saved successfully");
+
+      onSubmit?.([res]);
     } catch {
       toast.error("Failed to save contact");
     } finally {

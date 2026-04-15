@@ -17,7 +17,7 @@ export default function DependentsForm({
   onSubmit,
 }: Props) {
   const [list, setList] = useState(
-    defaultValues.length ? defaultValues.map(mapToForm) : [emptyDependent()],
+    defaultValues.length ? [mapToForm(defaultValues[0])] : [emptyDependent()],
   );
 
   const [loading, setLoading] = useState(false);
@@ -28,25 +28,17 @@ export default function DependentsForm({
     );
   }
 
-  function addRow() {
-    setList((prev) => [...prev, emptyDependent()]);
-  }
-
-  function removeRow(index: number) {
-    setList((prev) => prev.filter((_, i) => i !== index));
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      await updateProfileSection("DEPENDENTS", list);
+      const res = await updateProfileSection("DEPENDENTS", list[0]);
 
       toast.success("Dependents saved successfully");
 
-      onSubmit?.(list);
+      onSubmit?.([res]);
     } catch {
       toast.error("Failed to save dependents");
     } finally {
@@ -87,22 +79,8 @@ export default function DependentsForm({
             value={dep.birthDate}
             onChange={(v: string) => handleChange(index, "birthDate", v)}
           />
-
-          {list.length > 1 && (
-            <button
-              type="button"
-              onClick={() => removeRow(index)}
-              className="text-red-500 text-xs"
-            >
-              Remove
-            </button>
-          )}
         </div>
       ))}
-
-      <button type="button" onClick={addRow} className="text-blue-600 text-sm">
-        + Add another
-      </button>
 
       <div className="flex gap-3 pt-2">
         <button
